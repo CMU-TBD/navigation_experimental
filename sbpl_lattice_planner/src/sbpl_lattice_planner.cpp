@@ -108,6 +108,9 @@ void SBPLLatticePlanner::initialize(std::string name, costmap_2d::Costmap2DROS* 
     private_nh.param("forward_search", forward_search_, bool(false));
     private_nh.param("primitive_filename",primitive_filename_,string(""));
     private_nh.param("force_scratch_limit",force_scratch_limit_,500);
+    
+    int num_thetas;
+    private_nh.param("number_thetas",num_thetas,16);
 
     double nominalvel_mpersecs, timetoturn45degsinplace_secs;
     private_nh.param("nominalvel_mpersecs", nominalvel_mpersecs, 0.4);
@@ -171,16 +174,35 @@ void SBPLLatticePlanner::initialize(std::string name, costmap_2d::Costmap2DROS* 
     }
 
     bool ret;
+    EnvNAVXYTHETALAT_InitParms init_params;// = new EnvNAVXYTHETALAT_InitParms();
+    init_params.numThetas = num_thetas;
+    init_params.mapdata = 0;
+    init_params.startx = 0;
+    init_params.starty = 0;
+    init_params.starttheta = 0;
+    init_params.goalx = 0;
+    init_params.goaly = 0;
+    init_params.goaltheta = 0;
+    init_params.goaltol_x = 0;
+    init_params.goaltol_y = 0;
+    init_params.goaltol_theta = 0;
+    // numThetas, mapdata, startx, starty, starttheta, goalx, goaly, goaltheta, goaltol_x, goaltol_y, goaltol_theta
     try{
-      ret = env_->InitializeEnv(costmap_ros_->getCostmap()->getSizeInCellsX(), // width
-                                costmap_ros_->getCostmap()->getSizeInCellsY(), // height
-                                0, // mapdata
-                                0, 0, 0, // start (x, y, theta, t)
-                                0, 0, 0, // goal (x, y, theta)
-                                0, 0, 0, //goal tolerance
-                                perimeterptsV, costmap_ros_->getCostmap()->getResolution(), nominalvel_mpersecs,
-                                timetoturn45degsinplace_secs, obst_cost_thresh,
-                                primitive_filename_.c_str());
+        ret = env_->InitializeEnv(costmap_ros_->getCostmap()->getSizeInCellsX(), // width
+                                  costmap_ros_->getCostmap()->getSizeInCellsY(), // height
+                                  perimeterptsV, costmap_ros_->getCostmap()->getResolution(), nominalvel_mpersecs,
+                                  timetoturn45degsinplace_secs, obst_cost_thresh,
+                                  primitive_filename_.c_str(),
+                                  init_params);
+      // ret = env_->InitializeEnv(costmap_ros_->getCostmap()->getSizeInCellsX(), // width
+      //                           costmap_ros_->getCostmap()->getSizeInCellsY(), // height
+      //                           0, // mapdata
+      //                           0, 0, 0, // start (x, y, theta, t)
+      //                           0, 0, 0, // goal (x, y, theta)
+      //                           0, 0, 0, //goal tolerance
+      //                           perimeterptsV, costmap_ros_->getCostmap()->getResolution(), nominalvel_mpersecs,
+      //                           timetoturn45degsinplace_secs, obst_cost_thresh,
+      //                           primitive_filename_.c_str());
       current_env_width_ = costmap_ros_->getCostmap()->getSizeInCellsX();
       current_env_height_ = costmap_ros_->getCostmap()->getSizeInCellsY();
     }
